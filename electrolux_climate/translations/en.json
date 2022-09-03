@@ -1,0 +1,16 @@
+{
+    "config": {
+        "abort": {
+            "no_devices_found": "No devices found on the network",
+            "single_instance_allowed": "Already configured. Only a single configuration possible."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "ip": "Device IP"
+                },
+                "title": "Connect to the device"
+            }
+        }
+    }
+}
