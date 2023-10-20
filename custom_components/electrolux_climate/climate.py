@@ -78,7 +78,7 @@ class ElectroluxClimateEntity(ClimateEntity):
         self._attr_max_temp = MAX_TEMP
         self._attr_min_temp = MIN_TEMP
         self._attr_hvac_mode = HVACMode.OFF
-        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.AUTO, HVACMode.HEAT, HVACMode.COOL, HVACMode.DRY, HVACMode.FAN_ONLY]
+        self._attr_hvac_modes = [HVACMode.OFF, HVACMode.AUTO, HVACMode.HEAT, HVACMode.COOL, HVACMode.DRY, HVACMode.FAN_ONLY, HVACMode.HEAT_COOL]
         self._attr_fan_mode = FAN_OFF
         self._attr_fan_modes = [FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_QUIET, FAN_TURBO]
         self._attr_swing_mode = SWING_OFF
@@ -91,8 +91,10 @@ class ElectroluxClimateEntity(ClimateEntity):
                 return HVACMode.AUTO
             case electrolux.mode.COOL.value: 
                 return HVACMode.COOL
-            case electrolux.mode.HEAT.value | electrolux.mode.HEAT_8.value: 
+            case electrolux.mode.HEAT.value:
                 return HVACMode.HEAT
+            case electrolux.mode.HEAT_8.value:
+                return HVACMode.HEAT_COOL
             case electrolux.mode.DRY.value: 
                 return HVACMode.DRY
             case electrolux.mode.FAN.value: 
@@ -141,6 +143,8 @@ class ElectroluxClimateEntity(ClimateEntity):
                 return electrolux.mode.AUTO
             case HVACMode.HEAT: 
                 return electrolux.mode.HEAT
+            case HVACMode.HEAT_COOL: 
+                return electrolux.mode.HEAT_8
             case HVACMode.COOL: 
                 return electrolux.mode.COOL
             case HVACMode.DRY: 
