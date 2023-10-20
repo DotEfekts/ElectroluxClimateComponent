@@ -9,7 +9,7 @@ from broadlink.exceptions import DataValidationError
 from enum import IntEnum
 
 MAX_TEMP = 30
-MIN_TEMP = 17
+MIN_TEMP = 16
 
 def create_from_device(device: Device):
     return electrolux(device.host, device.mac, device.devtype, device.timeout, device.name, "", "Electrolux", device.is_locked)
