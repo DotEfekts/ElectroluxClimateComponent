@@ -8,7 +8,7 @@ DOMAIN = "electrolux_climate"
 FAN_QUIET = "quiet"
 FAN_TURBO = "turbo"
 
-MIN_TEMP = 17
+MIN_TEMP = 16
 MAX_TEMP = 30
 
 PLATFORMS: list[Platform] = [Platform.CLIMATE]
