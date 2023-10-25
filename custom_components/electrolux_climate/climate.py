@@ -2,41 +2,50 @@ import json
 import typing as t
 import base64
 import json
+import voluptuous as vol
+import homeassistant.helpers.config_validation as cv
 
 import broadlink
 
-from .electrolux import electrolux, create_from_device
+from .electrolux import electrolux, create_from_device, DEVICE_TYPE
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
 
 from broadlink.const import DEFAULT_TIMEOUT
 from broadlink.exceptions import AuthenticationError, NetworkTimeoutError, BroadlinkException
 
-
-from homeassistant.components.climate.const import FAN_AUTO, FAN_HIGH, FAN_LOW, FAN_MEDIUM, FAN_OFF, SWING_OFF, SWING_VERTICAL, ClimateEntityFeature, HVACMode
-from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate.const import FAN_AUTO, FAN_HIGH, FAN_LOW, FAN_MEDIUM, FAN_OFF, SWING_OFF, SWING_VERTICAL, ATTR_MIN_TEMP, ATTR_MAX_TEMP, ClimateEntityFeature, HVACMode
+from homeassistant.components.climate import ClimateEntity, PLATFORM_SCHEMA
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.const import TEMP_CELSIUS
+from homeassistant.const import TEMP_CELSIUS, CONF_HOST, CONF_MAC, CONF_NAME
 
-from .const import FAN_QUIET, FAN_TURBO, MAX_TEMP, MIN_TEMP
+from .const import FAN_QUIET, FAN_TURBO, DEFAULT_MIN, DEFAULT_MAX
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_HOST): cv.string,
+    vol.Optional(ATTR_MIN_TEMP, default=DEFAULT_MIN): cv.positive_int,
+    vol.Optional(ATTR_MAX_TEMP, default=DEFAULT_MAX): cv.positive_int,
+})
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, add_entities_async) -> bool:
     """Set up Electrolux Control from a config entry."""
 
     hass.data.setdefault(DOMAIN, {})
 
-    host = entry.data["ip"]
-    port = entry.data["port"]
-    mac = base64.b64decode(entry.data["mac"])
+    host = entry.data[CONF_HOST]
+    mac = bytes.fromhex(entry.data[CONF_MAC])
     name = entry.title
     sn = ""
 
-    discovery = broadlink.discover(discover_ip_address=host, discover_ip_port=port)
+    discovery = broadlink.discover(discover_ip_address=host)
     
     if len(discovery) > 0 and discovery[0].devtype == 0x4f9b:
         sn = json.loads(create_from_device(discovery[0]).get_status())["sn"]
@@ -44,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, add_entitie
     if sn == "":
         return False
 
-    device = ElectroluxClimateEntity(hass, entry, sn, name, (host, port), mac)
+    device = ElectroluxClimateEntity(hass, entry, sn, name, entry.data[CONF_NAME], (host, broadlink.DEFAULT_PORT), mac)
     await device.async_setup()
 
     add_entities_async([device], True)
@@ -59,6 +68,7 @@ class ElectroluxClimateEntity(ClimateEntity):
         config: ConfigEntry,
         sn: str,
         name: str,
+        dev_name: str,
         host: t.Tuple[str, int],
         mac: t.Union[bytes, str]):
         super().__init__()
@@ -71,12 +81,13 @@ class ElectroluxClimateEntity(ClimateEntity):
         self.sn = sn
         self._attr_unique_id = sn
         self._attr_name = name
+        self.dev_name = dev_name
 
         self._attr_temperature_unit = TEMP_CELSIUS
         self._attr_precision = 1
         self._attr_target_temperature_step = 1
-        self._attr_max_temp = MAX_TEMP
-        self._attr_min_temp = MIN_TEMP
+        self._attr_min_temp = config.data[ATTR_MIN_TEMP]
+        self._attr_max_temp = config.data[ATTR_MAX_TEMP]
         self._attr_hvac_mode = HVACMode.OFF
         self._attr_hvac_modes = [HVACMode.OFF, HVACMode.AUTO, HVACMode.HEAT, HVACMode.COOL, HVACMode.DRY, HVACMode.FAN_ONLY, HVACMode.HEAT_COOL]
         self._attr_fan_mode = FAN_OFF
@@ -193,9 +204,9 @@ class ElectroluxClimateEntity(ClimateEntity):
         self.device = electrolux(
             self.host, 
             self.mac, 
-            0x4f9b, 
+            DEVICE_TYPE,
             DEFAULT_TIMEOUT, 
-            self.name, 
+            self.dev_name, 
             "", 
             "Electrolux", 
             False)
@@ -217,3 +228,12 @@ class ElectroluxClimateEntity(ClimateEntity):
         self.hass.data[DOMAIN][self.config.entry_id] = self
 
         return True
+    
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
+        return DeviceInfo(
+            connections={(dr.CONNECTION_NETWORK_MAC, self.mac.hex())},
+            identifiers={(DOMAIN, self._attr_unique_id)},
+            name=self.name
+        )

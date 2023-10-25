@@ -1,15 +1,32 @@
 {
     "config": {
         "abort": {
-            "no_devices_found": "No devices found on the network",
-            "single_instance_allowed": "Already configured. Only a single configuration possible."
+            "already_configured": "Device is already configured",
+            "already_in_progress": "Configuration flow is already in progress",
+            "cannot_connect": "Failed to connect",
+            "invalid_host": "Invalid hostname or IP address",
+            "not_supported": "Device not supported",
+            "unknown": "Unexpected error"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_host": "Invalid hostname or IP address",
+            "unknown": "Unexpected error"
         },
         "step": {
             "user": {
                 "data": {
-                    "ip": "Device IP"
+                    "host": "Device hostname"
                 },
                 "title": "Connect to the device"
+            },
+            "finish": {
+                "data":{
+                    "name": "Device name",
+                    "min_temp": "Minimum Temperature",
+                    "max_temp": "Maximum Temperature"
+                },
+                "title": "Configure the device"
             }
         }
     }

@@ -1,4 +1,3 @@
-import json
 import struct
 import broadlink.exceptions as e
 import typing as t
@@ -8,8 +7,9 @@ from broadlink.exceptions import DataValidationError
 
 from enum import IntEnum
 
-MAX_TEMP = 30
-MIN_TEMP = 17
+MAX_TEMP = 40
+MIN_TEMP = 0
+DEVICE_TYPE = 0x4f9b
 
 def create_from_device(device: Device):
     return electrolux(device.host, device.mac, device.devtype, device.timeout, device.name, "", "Electrolux", device.is_locked)

@@ -2,15 +2,32 @@
   "config": {
     "step": {
       "user": {
-        "title": "Connect to the device",
+        "title": "[%key:common::config_flow::step::user::title%]",
         "data": {
-          "ip": "[%key:common::config_flow::data::ip%]"
+          "host": "[%key:common::config_flow::data::host%]"
+        }
+      },
+      "finish": {
+        "title": "[%key:common::config_flow::step::finish::title%]",
+        "data": {
+          "name": "[%key:common::config_flow::data::name%]",
+          "max_temp": "[%key:common::config_flow::data::name%]",
+          "min_temp": "[%key:common::config_flow::data::name%]"
         }
       }
     },
     "abort": {
-      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]",
-      "no_devices_found": "[%key:common::config_flow::abort::no_devices_found%]"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "already_in_progress": "[%key:common::config_flow::abort::already_in_progress%]",
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_host": "[%key:common::config_flow::error::invalid_host%]",
+      "not_supported": "Device not supported",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_host": "[%key:common::config_flow::error::invalid_host%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
     }
   }
 }
