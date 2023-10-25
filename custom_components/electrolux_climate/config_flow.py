@@ -25,7 +25,7 @@ from homeassistant.components.climate.const import ATTR_MAX_TEMP, ATTR_MIN_TEMP
 
 class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
 
-    VERSION = 1
+    VERSION = 2
 
     def __init__(self):
         self.device = None
