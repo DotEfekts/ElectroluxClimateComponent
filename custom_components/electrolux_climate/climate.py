@@ -87,7 +87,7 @@ class ElectroluxClimateEntity(ClimateEntity):
         self.mac = mac
 
         self.sn = sn
-        self._attr_unique_id = mac.hex().lower().replace(":", "")
+        self._attr_unique_id = sn #mac.hex().lower().replace(":", "")
         self._attr_name = name
         self.dev_name = dev_name
 
