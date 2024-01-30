@@ -38,5 +38,10 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
             new[ATTR_MAX_TEMP] = DEFAULT_MAX
 
             hass.config_entries.async_update_entry(config_entry, data=new)
+    if config_entry.version == 2:
 
+        config_entry.version = 3
+        new = {**config_entry.data}
+
+        hass.config_entries.async_update_entry(config_entry, unique_id=new[CONF_MAC], data=new)
     return True

@@ -4,6 +4,7 @@ import base64
 import json
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
+import logging
 
 import broadlink
 
@@ -12,7 +13,6 @@ from .electrolux import electrolux, create_from_device, DEVICE_TYPE
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
 
@@ -48,7 +48,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, add_entitie
     discovery = broadlink.discover(discover_ip_address=host)
     
     if len(discovery) > 0 and discovery[0].devtype == 0x4f9b:
-        sn = json.loads(create_from_device(discovery[0]).get_status())["sn"]
+        statusJson = json.loads(create_from_device(discovery[0]).get_status())
+        logging.info(statusJson)
+
+        if "sn" in statusJson:
+            sn = statusJson["sn"]
+        else:
+            logging.error("SN not available on entry")
+            logging.error(statusJson)
+            return False
 
     if sn == "":
         return False
@@ -79,7 +87,7 @@ class ElectroluxClimateEntity(ClimateEntity):
         self.mac = mac
 
         self.sn = sn
-        self._attr_unique_id = sn
+        self._attr_unique_id = mac.hex().lower().replace(":", "")
         self._attr_name = name
         self.dev_name = dev_name
 
@@ -230,9 +238,9 @@ class ElectroluxClimateEntity(ClimateEntity):
         return True
     
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dr.DeviceInfo:
         """Return device info."""
-        return DeviceInfo(
+        return dr.DeviceInfo(
             connections={(dr.CONNECTION_NETWORK_MAC, self.mac.hex())},
             identifiers={(DOMAIN, self._attr_unique_id)},
             name=self.name

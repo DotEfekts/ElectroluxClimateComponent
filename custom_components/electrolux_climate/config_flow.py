@@ -36,7 +36,7 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
             raise data_entry_flow.AbortFlow("not_supported")
 
         await self.async_set_unique_id(
-            device.mac.hex(), raise_on_progress=raise_on_progress
+            device.mac.hex().lower(), raise_on_progress=raise_on_progress
         )
         self.device = device
 
@@ -99,6 +99,7 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
 
                 if self.source != config_entries.SOURCE_REAUTH:
                     await self.async_set_device(device)
+                    await self.async_set_unique_id(device.mac.hex().lower())
                     self._abort_if_unique_id_configured(
                         updates={CONF_HOST: device.host[0], CONF_TIMEOUT: broadlink.DEFAULT_TIMEOUT}
                     )
