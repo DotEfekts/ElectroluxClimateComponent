@@ -24,7 +24,7 @@ from homeassistant.components.climate import ClimateEntity, PLATFORM_SCHEMA
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.const import TEMP_CELSIUS, CONF_HOST, CONF_MAC, CONF_NAME
+from homeassistant.const import UnitOfTemperature, CONF_HOST, CONF_MAC, CONF_NAME
 
 from .const import FAN_QUIET, FAN_TURBO, DEFAULT_MIN, DEFAULT_MAX
 
@@ -91,7 +91,7 @@ class ElectroluxClimateEntity(ClimateEntity):
         self._attr_name = name
         self.dev_name = dev_name
 
-        self._attr_temperature_unit = TEMP_CELSIUS
+        self._attr_temperature_unit = UnitOfTemperature.CELSIUS
         self._attr_precision = 1
         self._attr_target_temperature_step = 1
         self._attr_min_temp = config.data[ATTR_MIN_TEMP]
