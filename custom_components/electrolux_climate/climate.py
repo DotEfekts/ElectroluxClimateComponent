@@ -54,9 +54,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, add_entitie
         if "sn" in statusJson:
             sn = statusJson["sn"]
         else:
-            logging.error("SN not available on entry")
-            logging.error(statusJson)
-            return False
+            sn = mac.hex()
+            logging.warning("SN not available on entry")
+            logging.warning(statusJson)
 
     if sn == "":
         return False
@@ -102,7 +102,7 @@ class ElectroluxClimateEntity(ClimateEntity):
         self._attr_fan_modes = [FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_QUIET, FAN_TURBO]
         self._attr_swing_mode = SWING_OFF
         self._attr_swing_modes = [SWING_OFF, SWING_VERTICAL]
-        self._attr_supported_features = ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE | ClimateEntityFeature.TARGET_TEMPERATURE
+        self._attr_supported_features = ClimateEntityFeature.FAN_MODE | ClimateEntityFeature.SWING_MODE | ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_ON | ClimateEntityFeature.TURN_OFF
 
     def convert_to_hvacmode(self, state: int) -> str:
         match state:
@@ -140,7 +140,7 @@ class ElectroluxClimateEntity(ClimateEntity):
 
     def update(self):
         state = json.loads(self.device.get_status())
-        if state["sn"] != self.sn:
+        if "sn" in state and state["sn"] != self.sn:
             self._attr_available = False
             return
         self._attr_available = True
