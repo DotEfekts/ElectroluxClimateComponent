@@ -1,4 +1,5 @@
 """The Electrolux Control integration."""
+
 import base64
 
 from homeassistant.core import HomeAssistant
@@ -11,18 +12,23 @@ from broadlink import DEFAULT_TIMEOUT
 
 from .const import PLATFORMS, DEFAULT_MIN, DEFAULT_MAX
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Load entity."""
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload entity."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
-# Example migration function
-async def async_migrate_entry(hass, config_entry: ConfigEntry):
-    if config_entry.version == 1:
 
+# Example migration function
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+    """Migrate previous config entry types."""
+    if config_entry.version == 1:
         config_entry.version = 2
 
         if "ip" in config_entry.data:

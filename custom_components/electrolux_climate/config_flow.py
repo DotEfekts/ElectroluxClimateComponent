@@ -1,12 +1,9 @@
 """Config flow for Electrolux Climate."""
-from pickle import NONE
+
 import broadlink
-import base64
-import json
 import errno
 import socket
 import voluptuous as vol
-from functools import partial
 import homeassistant.helpers.config_validation as cv
 
 from homeassistant import data_entry_flow
@@ -23,11 +20,14 @@ from .const import DOMAIN, DEFAULT_MIN, DEFAULT_MAX
 from homeassistant.const import CONF_HOST, CONF_TIMEOUT, CONF_NAME, CONF_MAC
 from homeassistant.components.climate.const import ATTR_MAX_TEMP, ATTR_MIN_TEMP
 
+
 class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
+    """HomeAssistant config flow for Electrolux Climate Component."""
 
     VERSION = 2
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Entity constructor."""
         self.device = None
 
     async def async_set_device(self, device, raise_on_progress=True):
@@ -45,18 +45,19 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
             "model": device.model,
             "host": device.host[0],
         }
-            
-    async def async_step_dhcp(self, discovery_info: dhcp.DhcpServiceInfo) -> data_entry_flow.FlowResult:
+
+    async def async_step_dhcp(
+        self, discovery_info: dhcp.DhcpServiceInfo
+    ) -> data_entry_flow.FlowResult:
         """Handle dhcp discovery."""
 
-        print('DHCP called')
         host = discovery_info.ip
         unique_id = discovery_info.macaddress.lower().replace(":", "")
         await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured(updates={CONF_HOST: host})
 
         try:
-            device = await self.hass.async_add_executor_job(broadlink.hello, host)
+            device = await broadlink.hello(host)
 
         except NetworkTimeoutError:
             return self.async_abort(reason="cannot_connect")
@@ -71,7 +72,7 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
 
         await self.async_set_device(device)
         return await self.async_step_finish()
-    
+
     async def async_step_user(self, user_input=None):
         """Handle a flow initiated by the user."""
         errors = {}
@@ -80,8 +81,7 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
             host = user_input[CONF_HOST]
 
             try:
-                hello = partial(broadlink.hello, host)
-                device = await self.hass.async_add_executor_job(hello)
+                device = broadlink.hello(host)
 
             except NetworkTimeoutError:
                 errors["base"] = "cannot_connect"
@@ -101,7 +101,10 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
                     await self.async_set_device(device)
                     await self.async_set_unique_id(device.mac.hex().lower())
                     self._abort_if_unique_id_configured(
-                        updates={CONF_HOST: device.host[0], CONF_TIMEOUT: broadlink.DEFAULT_TIMEOUT}
+                        updates={
+                            CONF_HOST: device.host[0],
+                            CONF_TIMEOUT: broadlink.DEFAULT_TIMEOUT,
+                        }
                     )
                     return await self.async_step_finish()
 
@@ -114,15 +117,13 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
             if self.source == config_entries.SOURCE_IMPORT:
                 return self.async_abort(reason=errors["base"])
 
-        data_schema = {
-            vol.Required(CONF_HOST): str
-        }
+        data_schema = {vol.Required(CONF_HOST): str}
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(data_schema),
             errors=errors,
         )
-    
+
     async def async_step_finish(self, user_input=None):
         """Choose a name for the device and create config entry."""
         device = self.device
@@ -142,14 +143,14 @@ class ElectroluxClimateConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_MAC: device.mac.hex(),
                     CONF_TIMEOUT: device.timeout,
                     ATTR_MIN_TEMP: user_input[ATTR_MIN_TEMP],
-                    ATTR_MAX_TEMP: user_input[ATTR_MAX_TEMP]
+                    ATTR_MAX_TEMP: user_input[ATTR_MAX_TEMP],
                 },
             )
 
         data_schema = {
             vol.Required(CONF_NAME, default=device.name): str,
             vol.Optional(ATTR_MIN_TEMP, default=DEFAULT_MIN): cv.positive_int,
-            vol.Optional(ATTR_MAX_TEMP, default=DEFAULT_MAX): cv.positive_int
+            vol.Optional(ATTR_MAX_TEMP, default=DEFAULT_MAX): cv.positive_int,
         }
 
         return self.async_show_form(
